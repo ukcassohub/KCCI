@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/css/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script
+  src="https://code.jquery.com/jquery-1.12.4.min.js"
+  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+  crossorigin="anonymous"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/sweetalert2.all.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    ul, ol, li { list-style:none; margin:0; padding:0; }
+   
+    ul.myMenu > li { display:inline-block; width:100px; padding:5px 10px; background: #eee; border:1px solid #eee; text-align:center; position:relative;  }
+    ul.myMenu > li:hover { background:#fff; }
+    ul.myMenu > li ul.submenu { display:none; position:absolute; top:30px; left:0; }
+    ul.myMenu > li:hover ul.submenu { display:block; }
+    ul.myMenu > li ul.submenu > li { display:inline-block; width:100px; padding:5px 10px; background:#eee; border:1px solid #eee; text-align:center; }
+    ul.myMenu > li ul.submenu > li:hover { background:#fff; }
+</style>
+<style type="text/css">
+    a:link { color: red; text-decoration: none;}
+    a:visited { color: black; text-decoration: none;}
+    a:hover { color: blue; text-decoration: none;}
+ </style>
+  </head>
+  <body>
+
+    <!--메뉴-->
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div id="container">
+            <ul class="myMenu">
+                <li class="menu">메뉴
+                    <ul class="menu submenu">
+                        <li><a href="myInfo">내 정보</a></li>
+                        <li><a href="#" onclick="logout();">로그아웃</a></li>
+                        <li><a href="joinUs">참여하기</a></li>
+                        <li><a href="myprofile">내 프로필</a></li>
+                        <li><a href="serviceCenter">고객센터</a></li>
+                    </ul>   
+                </li>   
+            </ul>
+            </div>
+
+
+
+          <table class="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>ID</th><th>제목</th><th>작성자</th><th>작성일</th><th>수정/삭제</th>
+              </tr>
+            </thead>
+            <tbody id="articleList">              
+            </tbody>
+          </table>
+          <!--버튼 그룹 수정 요망-->
+          <div class="btn-group" id="pagination">
+          </div>
+          <button id="writeButton" class="btn btn-outline-secondary">글쓰기</button>
+          <a href="/" class="btn btn-outline-secondary">홈으로</a>
+        </div>
+      </div>  
+    </div>
+    <div class="modal" id="writeArticle">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">글쓰기</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input id="writeTitle" class="form-control" type="text" />
+            <textarea id="writeContents" class="form-control"></textarea>
+            <input id="fileToUpload" class="form-control" type="file"/>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+            <button type="button" class="btn btn-primary" onclick="writeArticle();">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="modifyArticle">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">수정</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input id="modifyTitle" class="form-control" type="text" />
+            <textarea id="modifyContents" class="form-control"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+            <button type="button" class="btn btn-primary" onclick="modifyArticleSave();">저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="viewArticle">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">게시글 보기</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h3 id="viewTitle"></h3>
+            <p id="viewContents"></p>
+            <p id="viewAttachment"></p>
+            <!--commentcontroller-->
+           
+</script>
+            <div id="commentControl">
+              <input type="text" class="form-control" id="commentInput"/>
+              <button class="btn btn-success btn-sm" onclick="writeComment();">댓글작성</button>
+            </div>
+            <!--commentlist-->
+            <div id="commentList">
+              
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" id="chatModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">채팅</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="chatHistory"></div>
+            <input type="text" class="form-control" id="chatInput"/>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <script>
+
+
+function logout(){
+        $.ajax({
+          url: '/users/logout',
+          method: 'post',
+          dataType:'text',
+          success: function(){
+            alert("로그아웃되었습니다.")
+            window.location.reload();
+          },
+          error: function(){}
+        })
+      }
+
+    const socket = io();
+    const myIdentity = "<%-userInfo.identity%>";
+    socket.emit("register", myIdentity);
+
+    function download(){
+
+    }
+
+    function attachMessageEvent(){
+    socket.off("message")
+    socket.on("message", function(message){
+      if(!window.targetIdentity){
+      openChat(message.fromIdentity);
+      }
+    });
+  }
+    attachMessageEvent();
+    $("#chatModal").on("hidden.bs.modal", function(){
+      window.targetIdentity = null;
+      attachMessageEvent();
+    });
+
+    function drawMessage(message){
+        //메시지를 받았을 때 처리하는 로직
+        if(
+          message.fromIdentity === myIdentity || 
+          message.fromIdentity === window.targetIdentity
+          ){
+        const createdAt = new Date(message.createdAt);
+        const year = createdAt.getFullYear();
+        const month = createdAt.getMonth() + 1;
+        const date = createdAt.getDate();
+        const hour = createdAt.getHours();
+        const minute = createdAt.getMinutes();
+        const second = createdAt.getSeconds();
+        const fullDate = year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second;
+        $("#chatHistory").append(`
+          <div>${message.fromIdentity} : ${message.message} - <small>${fullDate}</small>
+            </div>
+      `);
+      }
+    }
+
+
+    function openChat(targetIdentity){
+      window.targetIdentity = targetIdentity;
+      $("#chatHistory").html('');
+      socket.off("history");
+      socket.emit("history", targetIdentity);
+      socket.on("history", function(messages){
+        //메세지 출력 and rendering
+        messages.forEach(drawMessage);
+        
+      });
+      socket.off("message");
+      socket.on("message", drawMessage);
+      $("#chatInput").off('keydown');
+      $("#chatInput").on('keydown', function(event){
+        if(event.keyCode === 13){
+          socket.emit("send", targetIdentity, $("#chatInput").val());
+          $("#chatInput").val('');
+        }
+      });
+      $("#chatModal").modal("show");
+    }
+    /*한페이지당 게시글 수 const 선언*/
+    const articleCountPerPage = 5;
+    const pageCountPerPagination = 5;
+    window.totalArticleCount = 0;
+    window.currentViewPage = 0;
+
+    function makePagination(){
+      
+      const totalPageCount = Math.ceil(window.totalArticleCount / articleCountPerPage);
+      const totalPaginationCount = Math.ceil((window.currentViewPage+1)/pageCountPerPagination);
+      const paginationElement = $("#pagination");
+      
+      
+      let last = totalPaginationCount * pageCountPerPagination; //마지막 5,10, ...
+      let first = last - (pageCountPerPagination-1);//처음 1,6, ...
+      if(last>totalPageCount){
+        last = totalPageCount;
+      }
+      const next = last + 1; //배열로 받기위해
+      const prev = first - 1;
+
+      paginationElement.html('');
+      let htmlContents = '';
+
+      let className = 'btn btn-outline-dark';
+
+      if(first > 1){
+        htmlContents +=`
+        <button onclick="goToPage(${0});" class='btn ${className}'><<</button>
+        `;
+      }
+
+      if(first > 1){
+        htmlContents +=`
+        <button onclick="goToPage(${prev-1});" class='btn ${className}'><</button>
+        `;
+      }
+    
+      for (let i = first-1; i < last; ++i){
+        let className = 'btn btn-outline-dark';
+              //html의 클래스를 현재 보고있는 페이지에 하이라이팅
+          if(i=== window.currentViewPage){
+            className = 'btn-dark';
+          }
+          htmlContents += `
+            <button onclick="goToPage(${i})" class="btn ${className}">${i + 1}</button>
+          `;
+      }
+
+      if(next > 5 && next < totalPageCount) {
+        htmlContents += `
+          <button onclick="goToPage(${next-1});" class="btn ${className}">></button>
+          `;
+      }
+
+      if(last < totalPageCount){
+        htmlContents +=`
+        <button onclick="goToPage(${totalPageCount-1});" class='btn ${className}'>>></button>
+        `;
+      }
+
+      paginationElement.html(htmlContents);
+    }
+
+    function goToPage(pageIndex){
+      window.currentViewPage = pageIndex;
+      drawArticles();
+      makePagination();
+    }
+
+    function loadArticles(){
+      $.ajax({url: '/article/articles',
+              method: 'get',
+              dataType: 'json',
+              success: function(articles){
+                console.log(articles);
+                window.articles = articles;
+                window.totalArticleCount = articles.length;
+                  makePagination();
+                drawArticles();
+              }
+            });
+          }
+    loadArticles();
+    
+    function drawArticles(){
+      $("#articleList").html('');
+      let htmlContents = '';
+      //page start 지정 (보고있는 페이지 인덱스 곱하기 페이지당 게시글 수)
+      const pageStart = window.currentViewPage * articleCountPerPage;
+      //slice를 통해 원본데이터 안건드림
+      window.articles.slice(pageStart, pageStart + articleCountPerPage).forEach(function(article, index){
+        const id = article.id;
+        const title = article.title;
+        const createdAt = new Date(article.createdAt);
+        const year = createdAt.getFullYear();
+        const month = createdAt.getMonth() + 1;
+        const date = createdAt.getDate();
+        const fullDate = year + '-' + month + '-' + date;
+        const identity = article.identity;
+        htmlContents += `
+              <tr>
+                <td>${id}</td>
+                <td><a href="#" onclick="viewArticle(${index+pageStart});"
+                  >${title}</a></td>
+          
+                  <td>${identity === myIdentity ? identity : `
+                    <a href="#" onclick="openChat('${identity}');">${identity}
+                      </a>
+                  `}</td>
+                  <td>${fullDate}</td>
+                <td style="text-align:center">
+                  ${
+                    identity === myIdentity &&
+                    `<button class="btn btn-warning btn-sm" onclick="modifyArticle(${index+pageStart});">수정</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteArticle(${index+pageStart});">삭제</button>
+                    ` || ``
+                  }
+                </td>
+              </tr>
+        `;
+      });
+      $("#articleList").html(htmlContents);
+    }
+    $("#writeButton").on('click' ,function(){
+      $("#writeArticle").modal('show');
+    })
+
+
+    function writeArticle(){
+        //form 데이터 생성
+        const formData = new FormData();
+        const title = $("#writeTitle").val();
+        const contents = $("#writeContents").val();
+        const file = $("#fileToUpload")[0].files[0];
+        
+        //title, contents 를 폼 데이터로 어팬드
+        formData.append("title", title);
+        formData.append("contents", contents);
+        if(file){
+          formData.append("attachment", file);
+        }
+        $.ajax({
+          url: "/article/articles",
+          method: "post",
+          //컨텐트 타입 프로세서 데이터 false set
+          contentType: false,
+          processData: false,
+          dataType: "text",
+          data: formData,
+          success: function(){
+            $("#writeTitle").val('');
+            $("#writeContents").val('');
+            $("#writeArticle").modal('hide');
+           
+            loadArticles();
+            Swal.fire(
+              "성공",
+              "게시글 작성이 완료 되었습니다.",
+              "success"
+            );
+           }
+         });
+    }
+
+    function deleteArticle(articleIndex){
+      Swal.fire({
+        title: '삭제 하시겠습니까?',
+        text: "삭제는 취소가 불가능합니다.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: '삭제',
+        cancelButtonText: '취소'
+      }).then((result) => {
+        if (result.value) {
+          const article = window.articles[articleIndex];
+          if(article.identity !== myIdentity){
+        Swal.fire("권한 없음", "삭제불가", error)
+        return;
+      }
+          const articleId = article.id;
+          
+          $.ajax({
+            url: '/article/article/' + articleId,
+            method: 'delete',
+            dataType: 'text',
+            success: function(){
+              window.articles.splice(articleIndex, 1);
+              loadArticles();
+              Swal.fire(
+              
+            '삭제됨',
+            '파일이 삭제되었습니다.',
+            'success'
+            
+            )}
+            
+          });
+  }
+})
+    }
+    function modifyArticle(articleIndex){
+      const article = window.articles[articleIndex];
+      if(article.identity !== myIdentity){
+        return;
+      }
+      window.selectedArticleIndex = articleIndex;
+      $("#modifyTitle").val(article.title);
+      $("#modifyContents").val(article.contents);
+      $("#modifyArticle").modal('show');
+    }
+
+    function modifyArticleSave(){
+      const article = window.articles[window.selectedArticleIndex];
+      const articleId = article.id;
+      const title = $("#modifyTitle").val();
+      const contents = $("#modifyContents").val();
+      article.title = title;
+      article.contents = contents;
+      $.ajax({
+        url: "/article/article/" + articleId,
+        method: "put",
+        data:{
+          title: title,
+          contents: contents
+        },
+        dataType: "text",
+        success: function(){
+          loadArticles();
+          $("#modifyArticle").modal('hide');
+          Swal.fire("성공", "게시글 수정이 완료되었습니다.", "success");
+        }
+      })
+    }
+
+    function usersRead() {// json을 불러오는 함수다.
+    //readFileSync로 json파일을 읽고 버퍼로 리턴된 값을 string로 리턴하고 json으로 파싱
+    const users = JSON.parse(fs.readFileSync("./db/users.json").toString());
+    users.sort(function(n1, n2) {
+        return n2.id - n1.id; //내림차순(큰수부터) 정렬
+    });
+    return users;
+}
+
+    function down_btn() {
+      console.log(event);
+      if(`<%=userInfo.point %>` < 200) {
+        event.preventDefault();
+        event.stopPropagation();
+        Swal.fire("포인트 없음","다운로드 불가","error");
+        return;
+      }
+    }
+
+
+    function viewArticle(articleIndex){
+      const article = window.articles[articleIndex];
+      const title = article.title;
+      const contents = article.contents;
+      //아티클의
+      window.selectedArticleId = article.id;
+      //selectedAricleid할당 직후 drawcomments실행
+      drawComments();
+      $("#viewTitle").html(title);
+      $("#viewContents").html(contents);
+      $.ajax({
+        url: '/article/article/'+article.id+'/attachment',
+        method: 'get',
+        dataType: 'text',
+        success: function(response){
+          
+          $("#viewAttachment").html('');
+          
+            if(response){
+              $("#viewAttachment").append(`
+                <a href="/article/article/${article.id}/download/attachment" onclick="down_btn();">${response}</a>
+              `);
+            }
+          
+          //view article 모달 ajax 안쪽에서 show
+          $("#viewArticle").modal('show');
+
+        }
+        
+      })
+      
+    }
+
+    //댓글 불러오고 그려주는애
+    function drawComments(){
+      if(window.selectedArticleId){
+        $.ajax({
+          url: '/comment/article/' + window.selectedArticleId + '/comments',
+          method: 'get',
+          dataType: 'json',
+          success: function(comments){
+            $("#commentList").html('');
+            comments.sort(function(n1, n2){
+              return n2.id - n1.id;
+            });
+            let htmlContents = '';
+            comments.forEach(function(comment){
+              const createdAt = new Date(comment.createdAt);
+              const year = createdAt.getFullYear();
+              const month = createdAt.getMonth() + 1;
+              const date = createdAt.getDate();
+              const hour = createdAt.getHours();
+              const minute = createdAt.getMinutes();
+              const second = createdAt.getSeconds();
+              const fullDate = year + '-' + month + '-' + date + ' ' + hour +
+              ':' + minute + ':' + second;
+              htmlContents+=`
+                <div class="row">
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-body">
+                        ${comment.contents}-${comment.identity}-${fullDate}
+                        <br/><button class='btn btn-sm btn-rounded btn-danger' onclick="deleteComment(${comment.id});">X</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            $("#commentList").html(htmlContents);
+          }
+        });
+      }
+    }
+
+
+
+    function writeComment(){
+      const contents = $("#commentInput").val();
+      if(!contents){
+        return Swal.fire("댓글 작성 요망", "요망한...", "warning");
+      }
+      if(!window.selectedArticleId){
+        return Swal.fire("에러", "게시글이 선택되지 않음", "error");
+      }
+      $.ajax({
+        url: '/comment/article/' + window.selectedArticleId + '/comments',
+        method: 'post',
+        dataType: 'text',
+        data: {
+          contents: contents
+        },
+        success: function(){
+
+          //실행
+          drawComments();
+
+        }
+      });
+    }
+
+    //댓글 삭제함수
+    function deleteComment(commentId){
+      $.ajax({
+        url: '/comment/comment/' + commentId,
+        method: 'delete',
+        dataType: 'text',
+        success: function(){
+          drawComments();
+        }
+      });
+    }
+  </script>
+  </body>
+</html>

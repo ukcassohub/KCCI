@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/css/bootstrap.min.css' />
+    <script
+  src="https://code.jquery.com/jquery-1.12.4.min.js"
+  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+  crossorigin="anonymous"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <style>
+    #submit{border-radius: 12px;}
+  </style>
+  </head>
+  <body>
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#signinModal">
+      Sign In
+    </button>
+    
+    <!-- 로그인 Modal -->
+    <div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="signinModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="signinModalLabel">로그인</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            아이다: <input type="text" id="identity"/><br/>
+            패스워드: <input type="password" id="password"><br/>
+            <a href="#" data-toggle="modal" data-target="#signupModal">
+              Sign Up
+            </a>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="submit" type="button" class="btn btn-primary" onclick="login();">sign in</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 회원가입 Modal -->
+    <div class="modal fade" id="signupModal" tabindex="-1" role="dialog" aria-labelledby="signupModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="signupModalLabel">회원가입</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            아이디:<input type="text" id="joinIdentity"/><br>
+            패스워드:<input type="password" id="joinPassword"/><br>
+            닉네임:<input type="text" id="joinNickname"/><br>
+            이메일:<input type="text" id="joinEmail"/><br>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button id="submit" type="button" class="btn btn-primary" onclick="join();">sign Up</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    
+  </br></br>
+
+
+    <script>
+      function login(){
+        const identity = $("#identity").val();
+        const password = $("#password").val();
+        if(!identity || !password){
+          return alert("아이디 패스워드를 입력해주세요");
+        }
+        $.ajax({
+          url: "/users/login",
+          method: "post",
+          dataType: "text",//응답이 돌아올 데이터 타입. 이게 안맞으면 에러로 빠짐
+          data: {
+            identity: identity,
+            password: password
+          },
+          success: function(response){
+            alert("로그인 성공");
+            window.location.reload();//새로고침
+          },
+          error: function(){
+            alert("로그인 실패")
+
+          }
+        });
+      }
+
+
+      function join(){
+        const identity = $("#joinIdentity").val();//제이쿼리안에 들어가는게 셀렉터
+        const password = $("#joinPassword").val();
+        const nickname = $("#joinNickname").val();
+        const email = $("#joinEmail").val();
+        if (!identity || !password || !nickname){
+          return alert("아이디, 패스워드 혹은 닉네임이 누락되었습니다.")
+        }
+        $.ajax({
+          url: '/users/create',
+          method: 'post',
+          dataType: 'text',
+          data: {
+            identity: identity,
+            password: password,
+            nickname: nickname,
+            email: email,
+          },
+          success: function(){
+            alert("회원가입 성공")
+            $("#joinIdentity").val('');
+            $("#joinPassword").val('');
+            $("#joinNickname").val('');
+            $('#joinEmain').val('');
+            window.location.reload();//새로고침
+          },
+          error: function(error){
+            alert(error.responseText);
+          }
+        });
+
+      }
+    </script>
+  </body>
+</html>
