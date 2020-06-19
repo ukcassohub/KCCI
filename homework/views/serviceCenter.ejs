@@ -18,10 +18,10 @@
     ul.myMenu > li ul.submenu > li:hover { background:#fff; }
 </style>
 <style type="text/css">
-    a:link { color: red; text-decoration: none;}
-    a:visited { color: black; text-decoration: none;}
-    a:hover { color: blue; text-decoration: none;}
- </style>
+  a:link { color: black; text-decoration: none;}
+  a:visited { color: black; text-decoration: none;}
+  a:hover { color: blue; text-decoration: none;}
+</style>
 
 
   </head>
@@ -35,19 +35,22 @@
         </textarea>
     </textarea>
     <button>보내기</button>
-    <div id="container">
-      <ul class="myMenu">
-          <li class="menu">메뉴
-              <ul class="menu submenu">
-                  <li><a href="">내 정보</a></li>
-                  <li><a href="#" onclick="logout();">로그아웃</a></li>
-                  <li><a href="#">참여하기</a></li>
-                  <li><a href="#">내 프로필</a></li>
-                  <li><a href="#">고객센터</a></li>
-              </ul>   
-          </li>   
-      </ul>
-      </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div id="container">
+            <ul class="myMenu">
+                <li class="menu">메뉴
+                    <ul class="menu submenu">
+                        <li><a href="myInfo">내 정보</a></li>
+                        <li><a href="#" onclick="logout();">로그아웃</a></li>
+                        <li><a href="joinUs">참여하기</a></li>
+                        <li><a href="myprofile">내 프로필</a></li>
+                        <li><a href="serviceCenter">고객센터</a></li>
+                    </ul>   
+                </li>   
+            </ul>
+            </div>
     <script>
       function logout(){
         $.ajax({
