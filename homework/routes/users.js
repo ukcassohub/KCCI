@@ -21,14 +21,18 @@ function findOneByNick(nickname){
 }
 
 
-function createUser(identity, password, nickname, email, createdAt, point){
+function createUser(identity, password, nickname, email, createdAt, bankname, cellphone, bankaccount, refid){
   const user = {
     identity,
     password,
     nickname,
     email,
     createdAt,
-    point
+    bankname,
+    cellphone,
+    bankaccount,
+    refid
+    
   };
   const users = readUsers();
   users.push(user);
@@ -85,7 +89,10 @@ router.post('/create', function(req, res){
   const password = req.body.password;
   const nickname = req.body.nickname;
   const email = req.body.email || '';
-  const point = req.body.point || 500;
+  const bankaccount = req.body.bankaccount;
+  const bankname = req.body.bankname;
+  const cellphone = req.body.cellphone;
+  const refid = req.body.refid || '';
   
   if (!identity || !password || !nickname){
     return res.status(400).send("Some parameter lost");
@@ -100,7 +107,7 @@ router.post('/create', function(req, res){
     return res.status(400).send("Identity or nickname is already exist")
   }
   const createdAt = new Date().getTime();
-  createUser(identity, encryptStr(password, createdAt.toString()), nickname, email, createdAt, point);
+  createUser(identity, encryptStr(password, createdAt.toString()), nickname, email, createdAt, bankname, cellphone, bankaccount, refid);
   res.send("Sucess");
 });
 

@@ -12,7 +12,7 @@ var commentRouter = require('./routes/comment');
 var myInfoRouter = require('./routes/myInfo');
 var joinUsRouter = require('./routes/joinUs');
 var myprofileRouter = require('./routes/myprofile');
-var serviceCenterRouter = require('./routes/serviceCenter')
+var serviceCenterRouter = require('./routes/serviceCenter');
 
 var app = express();
 
