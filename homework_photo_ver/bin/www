@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');//app을 불러와서 서버를 생성해줌
+var debug = require('debug')('auth:server');
+var http = require('http');//http 모듈로 서버를 생성해줌
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');//포트정도만 수정
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+const chatHistory = {
+  
+}
+
+const io = require('socket.io')(server);//우리가 만든 서버에 socket.io도 attach된다.
+
+//io서버 클라이언트 리슨 시작
+io.on('connection', function(socket){
+  //클라이언트별 로직
+  let myIdentity = null;
+  socket.on("register", (identity)=>{
+    myIdentity = identity;
+    socket.join(identity);
+  });
+
+  socket.on("history", (targetIdentity)=>{
+    const identityArray = [myIdentity, targetIdentity].sort();
+    if(!chatHistory[identityArray.join('-')]){
+      chatHistory[identityArray.join('-')] = [];
+    }
+    socket.emit('history', chatHistory[identityArray.join('-')]);
+  });
+
+  socket.on("send", (targetIdentity, message)=>{
+    const identityArray = [myIdentity, targetIdentity].sort();
+    // 메시지 객체는 별도의 상수로 관리
+    const messageInstance = {
+      fromIdentity: myIdentity,
+      message: message,
+      createdAt: new Date().getTime(),
+    }
+    io.to(targetIdentity).emit("message", messageInstance);
+    socket.emit("message", messageInstance);
+    if(!chatHistory[identityArray.join('-')]){
+      chatHistory[identityArray.join('-')] = [];
+    }
+    chatHistory[identityArray.join('-')].push(messageInstance);
+  });
+});
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
