@@ -12,19 +12,21 @@ var commentRouter = require('./routes/comment');
 var myInfoRouter = require('./routes/myInfo');
 var joinUsRouter = require('./routes/joinUs');
 var myprofileRouter = require('./routes/myprofile');
-var serviceCenterRouter = require('./routes/serviceCenter');
+var serviceCenterRouter = require('./routes/serviceCenter')
 
 var app = express();
 
 // view engine setup
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
 app.use(logger('dev'));
 app.use(express.json());//json으로 한번 변환
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());//우리가 요청시 쿠키가 담겨있을텐데 키값을 오브젝트형태로 가공해줌
-app.use(express.static(path.join(__dirname, 'public')));//public폴더를 static하게 쓰게하기위해 public폴더 안에 파일들 접근 그냥가능하게해줌
+app.use(express.static(path.join(__dirname, '/public')));//public폴더를 static하게 쓰게하기위해 public폴더 안에 파일들 접근 그냥가능하게해줌
+app.use(express.static(path.join(__dirname, '/uploads')));
+app.use('article' ,express.static(path.join(__dirname, '/uploads')));
 app.use(session({
   secret: 'asdasdasd',
   resave: false,

@@ -24,6 +24,7 @@ function readUsers(){
       return identity === user.identity;
     })[0];
     return selectedUser;
+
   }
 
 function readArticles(){
@@ -56,13 +57,16 @@ function writeArticle(title, contents, identity, req){
     const articles = readArticles();
     const id = getLatestIdByArticles(articles);
     const createdAt = new Date().getTime();
+    const photoPath = '../uploads/'+id+'/photo.jpg';
     const article = {
         id,
         title,
         contents,
         createdAt,
         identity,
+        photoPath
     };
+    console.log(photoPath)
     const user = users.filter(function(point){//filter는 배열을 반환
         return article.identity === identity;
     })[0];
@@ -130,13 +134,15 @@ router.post('/articles', upload.single("attachment"), function(req, res){
     const identity = req.session.userInfo.identity;
     const createdId = writeArticle(title, contents, identity, req);
     
+    
     //createdid를 기반으로 dir생성
     if(req.file){
         const uploadPath = req.file.destination;
         const originalname = req.file.originalname;
-        const savePath = uploadPath+createdId 
+        const savePath = uploadPath+createdId;
         fs.mkdirSync(savePath);
-        fs.renameSync(req.file.path, savePath + '/' + originalname);//req.file.path의 파일이름을 , 뒤로 변경하겠다.
+        //fs.renameSync(req.file.path, savePath + '/' + originalname);
+        fs.renameSync(req.file.path, savePath + '/' + 'photo.jpg');//req.file.path의 파일이름을 , 뒤로 변경하겠다.
     }
     res.send("Success");//기본적으로 200코드로 전송
 });//게시글 생성 api만들어짐
